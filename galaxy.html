@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Real Galaxy</title>
+  <title>REAL Galaxy Fix</title>
   <style>
     body {
       margin: 0;
@@ -20,55 +20,51 @@ import * as THREE from 'https://cdn.skypack.dev/three@0.150.0';
 const canvas = document.getElementById('galaxy');
 const scene = new THREE.Scene();
 
+// ✅ CAMERA (FIX ANGLE TERUS)
 const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 100);
-camera.position.set(0, 5, 20);
+camera.position.set(12, 10, 20); // 🔥 bukan depan lurus dah
 scene.add(camera);
 
+// RENDERER
 const renderer = new THREE.WebGLRenderer({ canvas });
 renderer.setSize(innerWidth, innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-// ⭐ texture (buat bulat smooth)
+// TEXTURE (BUANG PIXEL LOOK)
 const loader = new THREE.TextureLoader();
 const texture = loader.load('https://threejs.org/examples/textures/sprites/disc.png');
 
-// PARAM
+// PARAMETER
 const count = 40000;
 const positions = new Float32Array(count * 3);
 const colors = new Float32Array(count * 3);
 
-const colorInside = new THREE.Color('#ff6030'); // tengah (orange)
-const colorOutside = new THREE.Color('#ff69b4'); // luar (pink)
+const colorInside = new THREE.Color('#ff6030');
+const colorOutside = new THREE.Color('#ff69b4');
 
 for(let i = 0; i < count; i++){
 
   const i3 = i * 3;
 
-  // 👉 radius (lebih padat dekat tengah)
   const radius = Math.random() ** 1.5 * 8;
 
-  // 👉 spiral formula (INI PENTING)
-  const angle = radius * 2.5;
+  const spinAngle = radius * 2.5;
+  const branchAngle = (i % 5) * (Math.PI * 2 / 5);
 
-  // 👉 branching (buat swirl nampak)
-  const branch = (i % 5) * (Math.PI * 2 / 5);
+  const randomX = (Math.random() - 0.5) * 0.4;
+  const randomY = (Math.random() - 0.5) * 0.4;
+  const randomZ = (Math.random() - 0.5) * 0.4;
 
-  // 👉 randomness kecil (jangan terlalu besar)
-  const randomX = (Math.random() - 0.5) * 0.3;
-  const randomY = (Math.random() - 0.5) * 0.3;
-  const randomZ = (Math.random() - 0.5) * 0.3;
+  positions[i3]     = Math.cos(branchAngle + spinAngle) * radius + randomX;
+  positions[i3 + 1] = randomY * 2; // 🔥 bagi depth nampak
+  positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius + randomZ;
 
-  positions[i3] = Math.cos(angle + branch) * radius + randomX;
-  positions[i3+1] = randomY * 0.5;
-  positions[i3+2] = Math.sin(angle + branch) * radius + randomZ;
-
-  // 🎨 gradient color
   const mix = radius / 8;
   const color = colorInside.clone().lerp(colorOutside, mix);
 
-  colors[i3] = color.r;
-  colors[i3+1] = color.g;
-  colors[i3+2] = color.b;
+  colors[i3]     = color.r;
+  colors[i3 + 1] = color.g;
+  colors[i3 + 2] = color.b;
 }
 
 const geometry = new THREE.BufferGeometry();
@@ -87,16 +83,18 @@ const material = new THREE.PointsMaterial({
 const galaxy = new THREE.Points(geometry, material);
 scene.add(galaxy);
 
-// 🎥 ANIMATION
+// 🎥 ANIMATION (ZOOM + ROTATE)
 function animate(){
   requestAnimationFrame(animate);
 
   // rotate
   galaxy.rotation.y += 0.002;
 
-  // zoom masuk
+  // 🔥 zoom masuk
   if(camera.position.z > 8){
     camera.position.z -= 0.05;
+    camera.position.x -= 0.02;
+    camera.position.y -= 0.02;
   }
 
   camera.lookAt(0,0,0);
@@ -106,7 +104,7 @@ function animate(){
 
 animate();
 
-// resize
+// RESIZE
 window.addEventListener('resize', ()=>{
   camera.aspect = innerWidth/innerHeight;
   camera.updateProjectionMatrix();
