@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>Galaxy Test</title>
+  <style>
+    body { margin:0; background:black; }
+    canvas { display:block; }
+  </style>
+</head>
+
+<body>
+<canvas class="webgl"></canvas>
+
+<script type="module">
+import * as THREE from 'https://cdn.skypack.dev/three@0.150.0';
+
+const canvas = document.querySelector('.webgl');
+const scene = new THREE.Scene();
+
+const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 100);
+camera.position.z = 8;
+
+const renderer = new THREE.WebGLRenderer({ canvas });
+renderer.setSize(innerWidth, innerHeight);
+
+// 🌌 galaxy
+const count = 2000;
+const pos = new Float32Array(count * 3);
+
+for(let i=0;i<count;i++){
+  let i3=i*3;
+  let r=Math.random()*5;
+  let a=r*1.5;
+
+  pos[i3]=Math.cos(a)*r;
+  pos[i3+1]=(Math.random()-0.5)*2;
+  pos[i3+2]=Math.sin(a)*r;
+}
+
+const geo = new THREE.BufferGeometry();
+geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+
+const mat = new THREE.PointsMaterial({
+  size:0.05,
+  color:'#ff69b4'
+});
+
+const galaxy = new THREE.Points(geo,mat);
+scene.add(galaxy);
+
+function tick(){
+  galaxy.rotation.y += 0.002;
+  renderer.render(scene,camera);
+  requestAnimationFrame(tick);
+}
+tick();
+</script>
+
+</body>
+</html>
