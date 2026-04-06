@@ -1,115 +1,81 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>REAL Galaxy Fix</title>
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      background: black;
-    }
-  </style>
+<title>Galaxy Test</title>
+<style>
+body { margin:0; background:black; overflow:hidden; }
+canvas { display:block; }
+</style>
 </head>
-
 <body>
-<canvas id="galaxy"></canvas>
+
+<canvas id="c"></canvas>
 
 <script type="module">
 import * as THREE from 'https://cdn.skypack.dev/three@0.150.0';
 
-const canvas = document.getElementById('galaxy');
+const canvas = document.getElementById('c');
+
 const scene = new THREE.Scene();
 
-// ✅ CAMERA (FIX ANGLE TERUS)
-const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 100);
-camera.position.set(12, 10, 20); // 🔥 bukan depan lurus dah
-scene.add(camera);
+const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
+camera.position.z = 30;
 
-// RENDERER
 const renderer = new THREE.WebGLRenderer({ canvas });
 renderer.setSize(innerWidth, innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-// TEXTURE (BUANG PIXEL LOOK)
-const loader = new THREE.TextureLoader();
-const texture = loader.load('https://threejs.org/examples/textures/sprites/disc.png');
-
-// PARAMETER
-const count = 40000;
-const positions = new Float32Array(count * 3);
-const colors = new Float32Array(count * 3);
-
-const colorInside = new THREE.Color('#ff6030');
-const colorOutside = new THREE.Color('#ff69b4');
-
-for(let i = 0; i < count; i++){
-
-  const i3 = i * 3;
-
-  const radius = Math.random() ** 1.5 * 8;
-
-  const spinAngle = radius * 2.5;
-  const branchAngle = (i % 5) * (Math.PI * 2 / 5);
-
-  const randomX = (Math.random() - 0.5) * 0.4;
-  const randomY = (Math.random() - 0.5) * 0.4;
-  const randomZ = (Math.random() - 0.5) * 0.4;
-
-  positions[i3]     = Math.cos(branchAngle + spinAngle) * radius + randomX;
-  positions[i3 + 1] = randomY * 2; // 🔥 bagi depth nampak
-  positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius + randomZ;
-
-  const mix = radius / 8;
-  const color = colorInside.clone().lerp(colorOutside, mix);
-
-  colors[i3]     = color.r;
-  colors[i3 + 1] = color.g;
-  colors[i3 + 2] = color.b;
-}
-
-const geometry = new THREE.BufferGeometry();
-geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-const material = new THREE.PointsMaterial({
-  size: 0.05,
-  map: texture,
-  transparent: true,
-  blending: THREE.AdditiveBlending,
-  depthWrite: false,
-  vertexColors: true
-});
-
-const galaxy = new THREE.Points(geometry, material);
-scene.add(galaxy);
-
-// 🎥 ANIMATION (ZOOM + ROTATE)
-function animate(){
-  requestAnimationFrame(animate);
-
-  // rotate
-  galaxy.rotation.y += 0.002;
-
-  // 🔥 zoom masuk
-  if(camera.position.z > 8){
-    camera.position.z -= 0.05;
-    camera.position.x -= 0.02;
-    camera.position.y -= 0.02;
-  }
-
-  camera.lookAt(0,0,0);
-
-  renderer.render(scene, camera);
-}
-
-animate();
-
-// RESIZE
 window.addEventListener('resize', ()=>{
   camera.aspect = innerWidth/innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
 });
+
+/* 🌌 REAL SPIRAL GALAXY */
+const count = 20000;
+const positions = new Float32Array(count * 3);
+
+for(let i=0;i<count;i++){
+  const i3 = i*3;
+
+  const radius = Math.random()*20;
+  const spin = radius * 2;
+
+  const branch = (i % 5) * ((Math.PI*2)/5);
+
+  positions[i3] = Math.cos(branch + spin) * radius;
+  positions[i3+1] = (Math.random()-0.5)*2;
+  positions[i3+2] = Math.sin(branch + spin) * radius;
+}
+
+const geometry = new THREE.BufferGeometry();
+geometry.setAttribute('position', new THREE.BufferAttribute(positions,3));
+
+const material = new THREE.PointsMaterial({
+  size: 0.1,
+  color: '#ff69b4'
+});
+
+const galaxy = new THREE.Points(geometry, material);
+scene.add(galaxy);
+
+/* 🎥 AUTO ZOOM + ROTATE */
+let angle = 0;
+
+function animate(){
+  requestAnimationFrame(animate);
+
+  angle += 0.002;
+
+  camera.position.x = Math.cos(angle)*30;
+  camera.position.z = Math.sin(angle)*30;
+  camera.lookAt(0,0,0);
+
+  galaxy.rotation.y += 0.001;
+
+  renderer.render(scene,camera);
+}
+
+animate();
 </script>
 
 </body>
