@@ -4,8 +4,14 @@
 <head>
   <title>Galaxy Test</title>
   <style>
-    body { margin:0; background:black; }
-    canvas { display:block; }
+    body {
+      margin:0;
+      background:black;
+      overflow:hidden;
+    }
+    canvas {
+      display:block;
+    }
   </style>
 </head>
 
@@ -25,37 +31,52 @@ camera.position.z = 8;
 const renderer = new THREE.WebGLRenderer({ canvas });
 renderer.setSize(innerWidth, innerHeight);
 
-// 🌌 galaxy particles
-const count = 2000;
-const pos = new Float32Array(count * 3);
+// 🌌 REAL GALAXY
+const count = 4000;
+const positions = new Float32Array(count * 3);
+
+const branches = 4;
+const spin = 1.2;
 
 for(let i=0;i<count;i++){
-  let i3=i*3;
-  let r=Math.random()*5;
-  let a=r*1.5;
+  let i3 = i * 3;
 
-  pos[i3]=Math.cos(a)*r;
-  pos[i3+1]=(Math.random()-0.5)*2;
-  pos[i3+2]=Math.sin(a)*r;
+  let radius = Math.random() * 6;
+  let branchAngle = (i % branches) / branches * Math.PI * 2;
+
+  let angle = branchAngle + radius * spin;
+
+  // position spiral
+  positions[i3] = Math.cos(angle) * radius;
+  positions[i3+1] = (Math.random() - 0.5) * 0.5;
+  positions[i3+2] = Math.sin(angle) * radius;
 }
 
-const geo = new THREE.BufferGeometry();
-geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+const geometry = new THREE.BufferGeometry();
+geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
-const mat = new THREE.PointsMaterial({
-  size:0.05,
-  color:'#ff69b4'
+const material = new THREE.PointsMaterial({
+  size: 0.05,
+  color: '#ff69b4'
 });
 
-const galaxy = new THREE.Points(geo,mat);
+const galaxy = new THREE.Points(geometry, material);
 scene.add(galaxy);
 
+// 🎬 ANIMATION
 function tick(){
-  galaxy.rotation.y += 0.002;
-  renderer.render(scene,camera);
+  galaxy.rotation.y += 0.0015;
+  renderer.render(scene, camera);
   requestAnimationFrame(tick);
 }
 tick();
+
+// 📱 resize support
+window.addEventListener('resize', ()=>{
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
 </script>
 
 </body>
